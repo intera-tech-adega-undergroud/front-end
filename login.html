@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+</head>
+
+<body>
+  Email
+  <br>
+  <input type="text" id="input_email">
+  <br><br>
+  Senha
+  <br>
+  <input type="text" id="input_senha">
+  <br><br>
+  <button onclick="entrar()">Entrar</button>
+  <br><br>
+  <div id="mensagem"></div>
+</body>
+
+</html>
+
+<script type="module"> // Permite importar funções
+
+// o type module deixa o javascript numa versão moderna que não transforma automaticamente os ID em variáveis na hora de puxar para o script e nem deixa de forma global. No fim ele retornaria como um "is not defined"
+
+  import { validarEmail, validarSenha } from "./utils.js";
+
+  function entrar() {
+    const email = document.getElementById("input_email").value;
+    const senha = document.getElementById("input_senha").value;
+    const mensagem = document.getElementById("mensagem");
+
+    if (!validarEmail(email)) {
+      mensagem.innerHTML = "Email inválido!";
+    } else {
+      mensagem.innerHTML = "Acessando..."
+    }
+
+    if (!validarSenha(senha)) {
+      mensagem.innerHTML = "A senha deve ter pelo menos 8 números e 1 caractere especial!";
+      return;
+    } else {
+      mensagem.innerHTML = "Acessando..."
+    }
+  }
+
+  window.entrar = entrar;
+
+</script>

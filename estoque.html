@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adega Underground</title>
+</head>
+
+<body>
+  Digite o nome do produto que você deseja adicionar:
+  <input type="text" id="input_nome">
+  <button onclick="adicionar()">Adicionar</button>
+  <br><br>
+  Digite o nome do produto que você deseja excluir:
+  <input type="text" id="input_excluir">
+  <button onclick="excluir()">Excluir</button>
+  <br><br>
+  Exibir lista de produtos:
+  <button onclick="exibir()">Exibir</button>
+  <br><br>
+  <div id="mensagem"></div>
+  <br><br>
+  <div id="mensagem2"></div>
+</body>
+
+</html>
+
+<script>
+
+  async function exibir() {
+    const resposta = await fetch("http://localhost:8080/produtos")
+    console.log("resposta", resposta)
+
+    const dados = await resposta.json()
+
+    mensagem.innerHTML = ""
+    dados.forEach(item => {
+      mensagem.innerHTML += `Id: ${item.id} - Produto: ${item.nome}<br>`
+    });
+  }
+
+  async function adicionar() {
+    const resposta = await fetch("http://localhost:8080/produtos",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",  // Estou enviando dados no formato JSON
+        },
+        body: JSON.stringify({   // Transforma o objeto javascript em objeto JSON para mandar ao servidor
+          nome: input_nome.value,
+        }),
+      });
+
+    console.log("resposta", resposta)
+
+    const dados = await resposta.json()
+    mensagem.innerHTML = ""
+    dados.forEach(item => {
+      mensagem.innerHTML = `Id: ${item.id} - Produto: ${item.nome}<br>`
+    });
+  }
+
+  async function excluir() {
+    const respostaBusca = await fetch("http://localhost:8080/produtos")
+    const produtos = await respostaBusca.json()
+
+    const produtoEncontrado = produtos.find(   // Retorna o primeiro dado que atender a condição
+      item => item.nome.toLowerCase() === input_excluir.value.toLowerCase()
+    )
+
+    if (!produtoEncontrado) {
+      mensagem2.innerHTML = "Produto não encontrado!"
+      return
+    }
+
+    const resposta = await fetch(
+      `http://localhost:8080/produtos/${produtoEncontrado.id}`,
+      {
+        method: "DELETE"
+      }
+    )
+
+    if (resposta.ok) {
+      mensagem2.innerHTML = "Produto excluído!"
+    } else {
+      mensagem2.innerHTML = "Erro ao excluir."
+    }
+  }
+
+</script>

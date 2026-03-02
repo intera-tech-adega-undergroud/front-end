@@ -1,0 +1,28 @@
+{
+  "produtos": [
+    {
+      "id": 1,
+      "nome": "Vodka"
+    },
+    {
+      "id": 2,
+      "nome": "Energético"
+    },
+    {
+      "nome": "Leite",
+      "id": 4
+    },
+    {
+      "nome": "agua",
+      "id": 9
+    },
+    {
+      "nome": "yakut",
+      "id": 10
+    },
+    {
+      "nome": "café",
+      "id": 11
+    }
+  ]
+}
