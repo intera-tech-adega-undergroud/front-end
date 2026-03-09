@@ -1,91 +1,350 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Adega Underground</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adega Underground - Estoque</title>
+
+<link rel="stylesheet" href="estoque.css">
+
 </head>
 
 <body>
-  Digite o nome do produto que você deseja adicionar:
-  <input type="text" id="input_nome">
-  <button onclick="adicionar()">Adicionar</button>
-  <br><br>
-  Digite o nome do produto que você deseja excluir:
-  <input type="text" id="input_excluir">
-  <button onclick="excluir()">Excluir</button>
-  <br><br>
-  Exibir lista de produtos:
-  <button onclick="exibir()">Exibir</button>
-  <br><br>
-  <div id="mensagem"></div>
-  <br><br>
-  <div id="mensagem2"></div>
-</body>
 
-</html>
+<h1>Produtos</h1>
 
-<script>
+<div class="top-bar">
 
-  async function exibir() {
-    const resposta = await fetch("http://localhost:8080/produtos")
-    console.log("resposta", resposta)
+<input
+type="text"
+id="buscar_produto"
+placeholder="Buscar por nome do produto..."
+oninput="buscar()"
+>
 
-    const dados = await resposta.json()
+<button class="btn-adicionar" onclick="abrirModalAdicionar()">
++ Adicionar produto
+</button>
 
-    mensagem.innerHTML = ""
-    dados.forEach(item => {
-      mensagem.innerHTML += `Id: ${item.id} - Produto: ${item.nome}<br>`
-    });
-  }
+</div>
 
-  async function adicionar() {
-    const resposta = await fetch("http://localhost:8080/produtos",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",  // Estou enviando dados no formato JSON
-        },
-        body: JSON.stringify({   // Transforma o objeto javascript em objeto JSON para mandar ao servidor
-          nome: input_nome.value,
-        }),
-      });
 
-    console.log("resposta", resposta)
+<table>
 
-    const dados = await resposta.json()
-    mensagem.innerHTML = ""
-    dados.forEach(item => {
-      mensagem.innerHTML = `Id: ${item.id} - Produto: ${item.nome}<br>`
-    });
-  }
+<thead>
 
-  async function excluir() {
-    const respostaBusca = await fetch("http://localhost:8080/produtos")
-    const produtos = await respostaBusca.json()
+<tr>
+<th>Produto</th>
+<th>Estoque</th>
+<th>Preço de custo</th>
+<th>Preço de venda</th>
+<th>Ações</th>
+</tr>
 
-    const produtoEncontrado = produtos.find(   // Retorna o primeiro dado que atender a condição
-      item => item.nome.toLowerCase() === input_excluir.value.toLowerCase()
-    )
+</thead>
 
-    if (!produtoEncontrado) {
-      mensagem2.innerHTML = "Produto não encontrado!"
-      return
-    }
+<tbody id="tabela_produtos"></tbody>
 
-    const resposta = await fetch(
-      `http://localhost:8080/produtos/${produtoEncontrado.id}`,
-      {
-        method: "DELETE"
-      }
-    )
+</table>
 
-    if (resposta.ok) {
-      mensagem2.innerHTML = "Produto excluído!"
-    } else {
-      mensagem2.innerHTML = "Erro ao excluir."
-    }
-  }
+
+<div id="mensagem"></div>
+
+
+<!-- MODAL EDITAR -->
+
+<div id="modalEditar" class="modal">
+
+<div class="modal-content">
+
+<h3>Editar Produto</h3>
+
+<label>Nome</label>
+<input type="text" id="editar_nome">
+
+<label>Estoque</label>
+<input type="number" id="editar_estoque">
+
+<label>Preço de custo</label>
+<input type="number" id="editar_custo">
+
+<label>Preço de venda</label>
+<input type="number" id="editar_preco">
+
+<div class="modal-buttons">
+
+<button onclick="fecharModalEditar()">Cancelar</button>
+
+<button class="btn-salvar" onclick="salvar()">Salvar</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- MODAL ADICIONAR -->
+
+<div id="modalAdicionar" class="modal">
+
+<div class="modal-content">
+
+<h3>Novo Produto</h3>
+
+<label>Nome</label>
+<input type="text" id="add_nome">
+
+<label>Estoque</label>
+<input type="number" id="add_estoque">
+
+<label>Preço de custo</label>
+<input type="number" id="add_custo">
+
+<label>Preço de venda</label>
+<input type="number" id="add_preco">
+
+<div class="modal-buttons">
+
+<button onclick="fecharModalAdicionar()">Cancelar</button>
+
+<button class="btn-salvar" onclick="adicionar()">Adicionar</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+import { verificarLogin, obterUsuarioLogado } from "./utils.js";
+
+verificarLogin();
+
+const usuario = obterUsuarioLogado();
+
+if(usuario){
+console.log(usuario.email)
+}
+
+let produtoSelecionado = null
+
+
+async function exibir(){
+
+const resposta = await fetch("http://localhost:8080/produtos")
+
+const dados = await resposta.json()
+
+renderizarTabela(dados)
+
+}
+
+
+function renderizarTabela(produtos){
+
+tabela_produtos.innerHTML = ""
+
+produtos.forEach(item => {
+
+tabela_produtos.innerHTML += `
+
+<tr>
+
+<td>${item.nome}</td>
+
+<td>${item.estoque}</td>
+
+<td>R$ ${item.custo}</td>
+
+<td>R$ ${item.preco}</td>
+
+<td>
+
+<button onclick="abrirModalEditar(${item.id})">✏️</button>
+
+<button onclick="excluir(${item.id})">🗑</button>
+
+</td>
+
+</tr>
+
+`
+
+})
+
+}
+
+
+async function buscar(){
+
+const texto = buscar_produto.value.toLowerCase()
+
+const resposta = await fetch("http://localhost:8080/produtos")
+
+const produtos = await resposta.json()
+
+const filtrados = produtos.filter(p =>
+p.nome.toLowerCase().includes(texto)
+)
+
+renderizarTabela(filtrados)
+
+}
+
+
+async function abrirModalEditar(id){
+
+const resposta = await fetch(`http://localhost:8080/produtos/${id}`)
+
+const produto = await resposta.json()
+
+produtoSelecionado = id
+
+editar_nome.value = produto.nome
+editar_estoque.value = produto.estoque
+editar_custo.value = produto.custo
+editar_preco.value = produto.preco
+
+modalEditar.style.display = "flex"
+
+}
+
+
+function fecharModalEditar(){
+
+modalEditar.style.display = "none"
+
+}
+
+
+async function salvar(){
+
+const resposta = await fetch(
+
+`http://localhost:8080/produtos/${produtoSelecionado}`,
+
+{
+method:"PATCH",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+
+nome: editar_nome.value,
+estoque: Number(editar_estoque.value),
+custo: Number(editar_custo.value),
+preco: Number(editar_preco.value)
+
+})
+
+}
+
+)
+
+if(resposta.ok){
+
+fecharModalEditar()
+
+exibir()
+
+mensagem.innerHTML = "Produto atualizado!"
+
+}
+
+}
+
+
+async function excluir(id){
+
+const resposta = await fetch(
+
+`http://localhost:8080/produtos/${id}`,
+
+{
+method:"DELETE"
+}
+
+)
+
+if(resposta.ok){
+
+exibir()
+
+mensagem.innerHTML = "Produto excluído!"
+
+}
+
+}
+
+
+function abrirModalAdicionar(){
+
+modalAdicionar.style.display = "flex"
+
+}
+
+
+function fecharModalAdicionar(){
+
+modalAdicionar.style.display = "none"
+
+}
+
+
+async function adicionar(){
+
+const resposta = await fetch(
+
+"http://localhost:8080/produtos",
+
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+
+nome:add_nome.value,
+estoque:Number(add_estoque.value),
+custo:Number(add_custo.value),
+preco:Number(add_preco.value)
+
+})
+
+}
+
+)
+
+if(resposta.ok){
+
+fecharModalAdicionar()
+
+exibir()
+
+mensagem.innerHTML="Produto adicionado!"
+
+}
+
+}
+
+
+window.exibir = exibir
+window.buscar = buscar
+window.abrirModalEditar = abrirModalEditar
+window.fecharModalEditar = fecharModalEditar
+window.salvar = salvar
+window.excluir = excluir
+window.abrirModalAdicionar = abrirModalAdicionar
+window.fecharModalAdicionar = fecharModalAdicionar
+window.adicionar = adicionar
+
+exibir()
 
 </script>
+
+</body>
+</html>
